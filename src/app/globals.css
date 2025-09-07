@@ -120,3 +120,418 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* AWS Elemental MediaLive Theme */
+.aws-theme {
+  --aws-primary: #FF9900;
+  --aws-secondary: #232F3E;
+  --aws-dark: #131921;
+  --aws-medium: #444444;
+  --aws-light: #F5F5F5;
+  --aws-accent: #00A1C9;
+  --aws-success: #1E8E3E;
+  --aws-warning: #FF9900;
+  --aws-danger: #D13212;
+  --aws-border: #D5D6D7;
+  --aws-background: #161E2D;
+  --aws-surface: #232F3E;
+  --aws-card: #2A3441;
+  --aws-text-primary: #F5F5F5;
+  --aws-text-secondary: #A5A5A5;
+  --aws-text-muted: #6B7280;
+}
+
+.aws-theme body {
+  background-color: var(--aws-background);
+  color: var(--aws-text-primary);
+}
+
+.aws-theme .bg-background {
+  background-color: var(--aws-background);
+}
+
+.aws-theme .bg-card {
+  background-color: var(--aws-card);
+}
+
+.aws-theme .bg-surface {
+  background-color: var(--aws-surface);
+}
+
+.aws-theme .text-primary {
+  color: var(--aws-text-primary);
+}
+
+.aws-theme .text-secondary {
+  color: var(--aws-text-secondary);
+}
+
+.aws-theme .text-muted {
+  color: var(--aws-text-muted);
+}
+
+.aws-theme .border-aws {
+  border-color: var(--aws-border);
+}
+
+.aws-theme .bg-aws-primary {
+  background-color: var(--aws-primary);
+}
+
+.aws-theme .bg-aws-secondary {
+  background-color: var(--aws-secondary);
+}
+
+.aws-theme .bg-aws-dark {
+  background-color: var(--aws-dark);
+}
+
+.aws-theme .bg-aws-accent {
+  background-color: var(--aws-accent);
+}
+
+.aws-theme .bg-aws-success {
+  background-color: var(--aws-success);
+}
+
+.aws-theme .bg-aws-warning {
+  background-color: var(--aws-warning);
+}
+
+.aws-theme .bg-aws-danger {
+  background-color: var(--aws-danger);
+}
+
+/* Broadcast-style components */
+.broadcast-card {
+  background: linear-gradient(135deg, #2A3441 0%, #232F3E 100%);
+  border: 1px solid #3A4553;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+.broadcast-header {
+  background: linear-gradient(90deg, #232F3E 0%, #2A3441 100%);
+  border-bottom: 2px solid #FF9900;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: #F5F5F5;
+}
+
+.broadcast-control {
+  background: #232F3E;
+  border: 1px solid #3A4553;
+  border-radius: 4px;
+  color: #F5F5F5;
+  padding: 8px 16px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.broadcast-control:hover {
+  background: #2A3441;
+  border-color: #FF9900;
+  box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.2);
+}
+
+.broadcast-control.active {
+  background: #FF9900;
+  color: #232F3E;
+  border-color: #FF9900;
+}
+
+.broadcast-button {
+  background: #FF9900;
+  color: #232F3E;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.broadcast-button:hover {
+  background: #FFB84D;
+  box-shadow: 0 4px 8px rgba(255, 153, 0, 0.3);
+}
+
+.broadcast-button.secondary {
+  background: #232F3E;
+  color: #F5F5F5;
+  border: 1px solid #3A4553;
+}
+
+.broadcast-button.secondary:hover {
+  background: #2A3441;
+  border-color: #FF9900;
+}
+
+.broadcast-button.danger {
+  background: #D13212;
+  color: #F5F5F5;
+}
+
+.broadcast-button.danger:hover {
+  background: #E25A3B;
+}
+
+.signal-flow {
+  background: #1A2332;
+  border: 1px solid #2A3441;
+  border-radius: 8px;
+  padding: 20px;
+  position: relative;
+}
+
+.signal-node {
+  background: #232F3E;
+  border: 2px solid #3A4553;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #F5F5F5;
+  font-weight: 600;
+  position: relative;
+}
+
+.signal-node.active {
+  border-color: #FF9900;
+  box-shadow: 0 0 20px rgba(255, 153, 0, 0.5);
+}
+
+.signal-line {
+  height: 2px;
+  background: #3A4553;
+  position: relative;
+}
+
+.signal-line.active {
+  background: #FF9900;
+  box-shadow: 0 0 10px rgba(255, 153, 0, 0.5);
+}
+
+.signal-line::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -4px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid #FF9900;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.status-indicator.online {
+  background: #1E8E3E;
+  box-shadow: 0 0 10px rgba(30, 142, 62, 0.5);
+}
+
+.status-indicator.offline {
+  background: #6B7280;
+}
+
+.status-indicator.warning {
+  background: #FF9900;
+  box-shadow: 0 0 10px rgba(255, 153, 0, 0.5);
+}
+
+.status-indicator.error {
+  background: #D13212;
+  box-shadow: 0 0 10px rgba(209, 50, 18, 0.5);
+}
+
+.metrics-panel {
+  background: #1A2332;
+  border: 1px solid #2A3441;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #FF9900;
+  font-family: 'Courier New', monospace;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: #A5A5A5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.encoder-controls {
+  background: #232F3E;
+  border: 1px solid #3A4553;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.encoder-section {
+  border-bottom: 1px solid #3A4553;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.encoder-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.encoder-section h3 {
+  color: #FF9900;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.stream-preview {
+  background: #000;
+  border: 2px solid #3A4553;
+  border-radius: 8px;
+  aspect-ratio: 16/9;
+  position: relative;
+  overflow: hidden;
+}
+
+.stream-preview::before {
+  content: 'NO SIGNAL';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #6B7280;
+  font-weight: 600;
+  font-size: 1.2rem;
+  letter-spacing: 0.1em;
+}
+
+.stream-preview.active::before {
+  content: 'LIVE';
+  color: #D13212;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.timeline {
+  background: #1A2332;
+  border: 1px solid #2A3441;
+  border-radius: 8px;
+  padding: 16px;
+  position: relative;
+}
+
+.timeline-track {
+  height: 40px;
+  background: #232F3E;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #FF9900 0%, #FFB84D 100%);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.timeline-marker {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 20px;
+  background: #00A1C9;
+  cursor: pointer;
+}
+
+.timeline-marker:hover {
+  background: #00B4E6;
+  width: 4px;
+}
+
+.ad-marker {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 30px;
+  background: #D13212;
+  cursor: pointer;
+}
+
+.ad-marker:hover {
+  background: #E25A3B;
+  width: 6px;
+}
+
+/* Scrollbar styling for AWS theme */
+.aws-theme ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.aws-theme ::-webkit-scrollbar-track {
+  background: #1A2332;
+}
+
+.aws-theme ::-webkit-scrollbar-thumb {
+  background: #3A4553;
+  border-radius: 4px;
+}
+
+.aws-theme ::-webkit-scrollbar-thumb:hover {
+  background: #4A5563;
+}
+
+/* Utility classes for AWS theme */
+.aws-font-mono {
+  font-family: 'Courier New', monospace;
+}
+
+.aws-border-orange {
+  border-color: #FF9900;
+}
+
+.aws-bg-gradient {
+  background: linear-gradient(135deg, #161E2D 0%, #232F3E 100%);
+}
+
+.aws-shadow-orange {
+  box-shadow: 0 0 20px rgba(255, 153, 0, 0.3);
+}
+
+.aws-text-orange {
+  color: #FF9900;
+}
+
+.aws-text-cyan {
+  color: #00A1C9;
+}
+
+.aws-text-green {
+  color: #1E8E3E;
+}
+
+.aws-text-red {
+  color: #D13212;
+}
