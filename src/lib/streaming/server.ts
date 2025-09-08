@@ -3,6 +3,8 @@ import { Server as SocketIOServer } from 'socket.io'
 import { SrtPusher, SrtPusherConfig } from '@/lib/srt-pusher'
 import { db } from '@/lib/db'
 import { SCTE35Generator, SCTE35Marker } from '@/lib/scte35'
+import { SSAIManager } from './ssai'
+import { HLSDASHPackager } from './hls-dash-packager'
 
 export interface StreamConfig {
   rtmp: {
@@ -29,6 +31,8 @@ export class StreamingServer {
   private config: StreamConfig
   private activeStreams: Map<string, any> = new Map()
   private srtPushers: Map<string, SrtPusher> = new Map()
+  private ssaiManager: SSAIManager
+  private packager: HLSDASHPackager
 
   constructor(config: StreamConfig, httpServer: Server) {
     this.config = config
@@ -38,6 +42,33 @@ export class StreamingServer {
         methods: ["GET", "POST"]
       }
     })
+
+    // Initialize SSAI manager
+    this.ssaiManager = new SSAIManager({
+      url: process.env.AD_DECISION_SERVER_URL || 'http://localhost:3001',
+      timeout: 5000,
+      fallbackAds: [
+        {
+          adId: 'fallback-1',
+          adUrl: '/ads/fallback.mp4',
+          duration: 30,
+          adType: 'PROGRAM',
+          trackingEvents: {
+            start: '/tracking/fallback-start',
+            complete: '/tracking/fallback-complete'
+          }
+        }
+      ]
+    })
+
+    // Initialize HLS/DASH packager
+    this.packager = new HLSDASHPackager({
+      type: 'both',
+      baseUrl: process.env.PACKAGER_BASE_URL || 'http://localhost:8000',
+      outputDirectory: './output',
+      segmentDuration: 10,
+      playlistLength: 6
+    }, this.ssaiManager)
 
     this.setupEventHandlers()
   }
@@ -86,6 +117,77 @@ export class StreamingServer {
           socket.emit('ad_marker_inserted', { success: true, streamKey: data.streamKey })
         } catch (error) {
           socket.emit('ad_marker_error', { error: 'Failed to insert ad marker' })
+        }
+      })
+
+      socket.on('package_stream', async (data: { 
+        streamId: string, 
+        inputUrl: string,
+        packageType: 'hls' | 'dash' | 'both',
+        includeSCTE35?: boolean,
+        enableSSAI?: boolean,
+        adaptiveBitrate?: boolean
+      }) => {
+        try {
+          const result = await this.packageStream(data.streamId, data.inputUrl, {
+            type: data.packageType,
+            includeSCTE35: data.includeSCTE35,
+            enableSSAI: data.enableSSAI,
+            adaptiveBitrate: data.adaptiveBitrate
+          })
+          socket.emit('stream_packaged', { success: true, streamId: data.streamId, result })
+        } catch (error) {
+          socket.emit('packaging_error', { error: 'Failed to package stream' })
+        }
+      })
+
+      socket.on('get_ssai_manifest', async (data: { 
+        streamId: string, 
+        originalManifest: string,
+        manifestType: 'hls' | 'dash'
+      }) => {
+        try {
+          const manifest = await this.ssaiManager.processStreamWithSSAI(
+            data.streamId,
+            data.originalManifest,
+            data.manifestType
+          )
+          socket.emit('ssai_manifest', { success: true, streamId: data.streamId, manifest })
+        } catch (error) {
+          socket.emit('ssai_error', { error: 'Failed to generate SSAI manifest' })
+        }
+      })
+
+      socket.on('track_ad_event', async (data: { 
+        streamId: string, 
+        adId: string, 
+        eventType: 'start' | 'firstQuartile' | 'midpoint' | 'thirdQuartile' | 'complete',
+        viewerId?: string
+      }) => {
+        try {
+          await this.ssaiManager.trackAdEvent(
+            data.streamId,
+            data.adId,
+            data.eventType,
+            data.viewerId
+          )
+          socket.emit('ad_event_tracked', { success: true, streamId: data.streamId, adId: data.adId, eventType: data.eventType })
+        } catch (error) {
+          socket.emit('tracking_error', { error: 'Failed to track ad event' })
+        }
+      })
+
+      socket.on('get_packaging_stats', async () => {
+        try {
+          const stats = this.packager.getStatistics()
+          const ssaiStats = this.ssaiManager.getStatistics()
+          socket.emit('packaging_stats', { 
+            success: true, 
+            packaging: stats,
+            ssai: ssaiStats
+          })
+        } catch (error) {
+          socket.emit('stats_error', { error: 'Failed to get packaging stats' })
         }
       })
 
@@ -314,6 +416,31 @@ export class StreamingServer {
       console.log(`SCTE-35 ad marker inserted for stream ${streamKey}:`, marker)
     } catch (error) {
       console.error('Error inserting ad marker:', error)
+      throw error
+    }
+  }
+
+  private async packageStream(
+    streamId: string, 
+    inputUrl: string, 
+    options: {
+      type: 'hls' | 'dash' | 'both'
+      includeSCTE35?: boolean
+      enableSSAI?: boolean
+      adaptiveBitrate?: boolean
+    }
+  ) {
+    try {
+      const result = await this.packager.packageStream(
+        streamId,
+        inputUrl,
+        options
+      )
+
+      console.log(`Stream packaged: ${streamId}`, result)
+      return result
+    } catch (error) {
+      console.error('Error packaging stream:', error)
       throw error
     }
   }

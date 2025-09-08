@@ -6,374 +6,366 @@ export interface AdDecision {
   adUrl: string
   duration: number
   adType: string
-  targeting?: {
-    demographics?: string[]
-    content?: string[]
-    device?: string[]
+  trackingEvents?: {
+    start?: string
+    firstQuartile?: string
+    midpoint?: string
+    thirdQuartile?: string
+    complete?: string
   }
 }
 
-export interface AdBreakRequest {
-  streamId: string
-  cueId: string
-  startTime: number
-  duration: number
-  adType: string
-  viewerContext?: {
-    deviceId: string
-    location?: string
-    userAgent: string
-    bandwidth?: number
-  }
+export interface AdDecisionServerConfig {
+  url: string
+  apiKey?: string
+  timeout: number
+  fallbackAds?: AdDecision[]
 }
 
 export class SSAIManager {
-  private adDecisionServerUrl?: string
-  private adTrackingEnabled: boolean
+  private config: AdDecisionServerConfig
+  private activeManifests: Map<string, SSAIManifest> = new Map()
 
-  constructor(options: {
-    adDecisionServerUrl?: string
-    adTrackingEnabled?: boolean
-  } = {}) {
-    this.adDecisionServerUrl = options.adDecisionServerUrl
-    this.adTrackingEnabled = options.adTrackingEnabled || false
+  constructor(config: AdDecisionServerConfig) {
+    this.config = config
   }
 
   /**
-   * Process ad break request and return ad decision
-   * Based on Bitmovin's SSAI workflow
+   * Process a stream with SSAI ad insertion
+   * Based on Bitmovin's SSAI implementation
    */
-  async processAdBreak(request: AdBreakRequest): Promise<AdDecision | null> {
-    try {
-      // Check if we have a local ad decision server configured
-      if (this.adDecisionServerUrl) {
-        return await this.callAdDecisionServer(request)
-      } else {
-        // Fallback to local ad decision logic
-        return await this.makeLocalAdDecision(request)
-      }
-    } catch (error) {
-      console.error('Error processing ad break:', error)
-      return null
-    }
-  }
-
-  /**
-   * Generate SSAI manifest with ad breaks
-   * Based on Bitmovin's manifest manipulation approach
-   */
-  async generateSSAIManifest(
+  async processStreamWithSSAI(
     streamId: string,
     originalManifest: string,
     manifestType: 'hls' | 'dash'
   ): Promise<SSAIManifest> {
     try {
-      // Get ad breaks for this stream
-      const adBreaks = await this.getAdBreaksForStream(streamId)
-      
+      // Get stream and ad markers from database
+      const stream = await db.stream.findUnique({
+        where: { id: streamId },
+        include: {
+          adMarkers: {
+            where: { isInserted: true },
+            orderBy: { startTime: 'asc' }
+          }
+        }
+      })
+
+      if (!stream) {
+        throw new Error('Stream not found')
+      }
+
+      // Convert ad markers to ad breaks format
+      const adBreaks = stream.adMarkers.map(marker => ({
+        id: marker.cueId || marker.id,
+        startTime: marker.startTime,
+        duration: marker.duration,
+        adType: marker.adType
+      }))
+
       // Generate SSAI manifest
       const ssaiManifest = AdvancedSCTE35.generateSSAIManifest(
         originalManifest,
         adBreaks,
         {
           type: manifestType,
-          adDecisionServer: this.adDecisionServerUrl,
-          adTracking: this.adTrackingEnabled
+          adDecisionServer: this.config.url,
+          adTracking: true
         }
       )
 
+      // Store active manifest
+      this.activeManifests.set(streamId, ssaiManifest)
+
       return ssaiManifest
     } catch (error) {
-      console.error('Error generating SSAI manifest:', error)
+      console.error('Error processing stream with SSAI:', error)
       throw error
     }
   }
 
   /**
-   * Call external ad decision server
-   * Simulates integration with ad platforms like Google Ad Manager
+   * Get ad decisions from ad decision server
    */
-  private async callAdDecisionServer(request: AdBreakRequest): Promise<AdDecision | null> {
-    if (!this.adDecisionServerUrl) {
-      return null
+  async getAdDecision(
+    adBreak: {
+      id: string
+      startTime: number
+      duration: number
+      adType: string
+    },
+    streamContext: {
+      streamId: string
+      viewerId?: string
+      deviceType?: string
+      location?: string
     }
-
+  ): Promise<AdDecision> {
     try {
-      // In a real implementation, this would make an HTTP request to the ad server
-      const response = await fetch(this.adDecisionServerUrl, {
+      // In a real implementation, this would call an external ad decision server
+      // For now, we'll simulate the response
+      
+      const response = await fetch(this.config.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.config.apiKey || ''}`,
+          'User-Agent': 'SCTE35-SSAI-Manager/1.0'
         },
         body: JSON.stringify({
-          streamId: request.streamId,
-          cueId: request.cueId,
-          startTime: request.startTime,
-          duration: request.duration,
-          adType: request.adType,
-          viewerContext: request.viewerContext,
-          timestamp: new Date().toISOString()
-        })
+          adBreak,
+          streamContext,
+          timestamp: Date.now()
+        }),
+        signal: AbortSignal.timeout(this.config.timeout)
       })
 
-      if (response.ok) {
-        const adData = await response.json()
-        return {
-          adId: adData.adId || `ad-${Date.now()}`,
-          adUrl: adData.adUrl,
-          duration: adData.duration || request.duration,
-          adType: adData.adType || request.adType,
-          targeting: adData.targeting
+      if (!response.ok) {
+        throw new Error(`Ad decision server error: ${response.status}`)
+      }
+
+      const adDecision = await response.json()
+      return adDecision
+    } catch (error) {
+      console.error('Error getting ad decision:', error)
+      
+      // Fallback to predefined ads if available
+      if (this.config.fallbackAds && this.config.fallbackAds.length > 0) {
+        const fallbackAd = this.config.fallbackAds[
+          Math.floor(Math.random() * this.config.fallbackAds.length)
+        ]
+        return fallbackAd
+      }
+
+      // Default fallback ad
+      return {
+        adId: `fallback-${Date.now()}`,
+        adUrl: '/ads/fallback.mp4',
+        duration: adBreak.duration,
+        adType: adBreak.adType,
+        trackingEvents: {
+          start: '/tracking/fallback-start',
+          complete: '/tracking/fallback-complete'
         }
       }
-    } catch (error) {
-      console.error('Error calling ad decision server:', error)
-    }
-
-    return null
-  }
-
-  /**
-   * Make local ad decision when no external server is configured
-   */
-  private async makeLocalAdDecision(request: AdBreakRequest): Promise<AdDecision | null> {
-    // Simple local ad decision logic
-    // In production, this would be more sophisticated
-    
-    const adTypes = {
-      'PROVIDER_ADVERTISEMENT': {
-        adUrl: '/ads/provider-ad.mp4',
-        fallbackUrl: '/ads/default-ad.mp4'
-      },
-      'DISTRIBUTOR_ADVERTISEMENT': {
-        adUrl: '/ads/distributor-ad.mp4',
-        fallbackUrl: '/ads/default-ad.mp4'
-      },
-      'NETWORK_ADVERTISEMENT': {
-        adUrl: '/ads/network-ad.mp4',
-        fallbackUrl: '/ads/default-ad.mp4'
-      },
-      'LOCAL_ADVERTISEMENT': {
-        adUrl: '/ads/local-ad.mp4',
-        fallbackUrl: '/ads/default-ad.mp4'
-      }
-    }
-
-    const adConfig = adTypes[request.adType as keyof typeof adTypes]
-    if (!adConfig) {
-      return null
-    }
-
-    return {
-      adId: `ad-${request.cueId}-${Date.now()}`,
-      adUrl: adConfig.adUrl,
-      duration: request.duration,
-      adType: request.adType,
-      targeting: {
-        demographics: ['all'],
-        content: ['live-streaming'],
-        device: ['all']
-      }
     }
   }
 
   /**
-   * Get ad breaks for a specific stream
+   * Generate HLS manifest with SSAI ad insertion
    */
-  private async getAdBreaksForStream(streamId: string) {
-    const adMarkers = await db.adMarker.findMany({
-      where: {
-        streamId,
-        isInserted: false
-      },
-      orderBy: {
-        startTime: 'asc'
-      }
-    })
-
-    return adMarkers.map(marker => ({
-      id: marker.id,
-      startTime: marker.startTime,
-      duration: marker.duration,
-      adType: marker.adType,
-      adServerUrl: this.adDecisionServerUrl
-    }))
-  }
-
-  /**
-   * Track ad impression
-   * For analytics and reporting
-   */
-  async trackAdImpression(adId: string, viewerContext: any): Promise<void> {
-    if (!this.adTrackingEnabled) {
-      return
-    }
-
+  async generateHLSWithSSAI(
+    streamId: string,
+    baseUrl: string,
+    segments: Array<{
+      url: string
+      duration: number
+      scte35Markers?: any[]
+    }>
+  ): Promise<string> {
     try {
-      // In production, this would send tracking data to analytics platform
-      console.log('Ad impression tracked:', {
-        adId,
-        timestamp: new Date().toISOString(),
-        viewerContext
-      })
+      // Get SSAI manifest for the stream
+      const ssaiManifest = this.activeManifests.get(streamId)
+      if (!ssaiManifest) {
+        throw new Error('No active SSAI manifest found for stream')
+      }
 
-      // Store tracking data in database
-      await db.adMarker.updateMany({
-        where: {
-          cueId: adId
-        },
-        data: {
-          // Update tracking fields as needed
+      // Generate enhanced HLS manifest with SSAI
+      const hlsManifest = AdvancedSCTE35.generateHLSManifest(
+        baseUrl,
+        segments.map(segment => ({
+          ...segment,
+          scte35Markers: segment.scte35Markers?.map(marker => ({
+            id: marker.id,
+            time: marker.startTime,
+            duration: marker.duration,
+            cueId: marker.cueId,
+            adType: marker.adType,
+            description: marker.description
+          }))
+        })),
+        {
+          version: 6,
+          targetDuration: 10,
+          mediaSequence: 0
         }
-      })
+      )
+
+      return hlsManifest
     } catch (error) {
-      console.error('Error tracking ad impression:', error)
+      console.error('Error generating HLS with SSAI:', error)
+      throw error
     }
   }
 
   /**
-   * Track ad quartile events (start, first quartile, midpoint, third quartile, complete)
+   * Generate DASH manifest with SSAI ad insertion
    */
-  async trackAdQuartile(
+  async generateDASHWithSSAI(
+    streamId: string,
+    baseUrl: string,
+    periods: Array<{
+      id: string
+      duration: number
+      adaptations: Array<{
+        id: string
+        contentType: 'video' | 'audio'
+        mimeType: string
+        codecs: string
+        bandwidth: number
+        segments: Array<{
+          url: string
+          duration: number
+          scte35Markers?: any[]
+        }>
+      }>
+      scte35Markers?: any[]
+    }>
+  ): Promise<string> {
+    try {
+      // Get SSAI manifest for the stream
+      const ssaiManifest = this.activeManifests.get(streamId)
+      if (!ssaiManifest) {
+        throw new Error('No active SSAI manifest found for stream')
+      }
+
+      // Generate enhanced DASH manifest with SSAI
+      const dashManifest = AdvancedSCTE35.generateDASHManifest(
+        baseUrl,
+        periods.map(period => ({
+          ...period,
+          scte35Markers: period.scte35Markers?.map(marker => ({
+            id: marker.id,
+            time: marker.startTime,
+            duration: marker.duration,
+            schemeIdUri: AdvancedSCTE35.SchemeUris.SCTE35,
+            value: 'scte35',
+            cueId: marker.cueId
+          })),
+          adaptations: period.adaptations.map(adaptation => ({
+            ...adaptation,
+            segments: adaptation.segments.map(segment => ({
+              ...segment,
+              scte35Markers: segment.scte35Markers?.map(marker => ({
+                id: marker.id,
+                time: marker.startTime,
+                duration: marker.duration,
+                schemeIdUri: AdvancedSCTE35.SchemeUris.SCTE35,
+                value: 'scte35',
+                cueId: marker.cueId
+              }))
+            }))
+          }))
+        })),
+        {
+          minBufferTime: 2,
+          suggestedPresentationDelay: 10
+        }
+      )
+
+      return dashManifest
+    } catch (error) {
+      console.error('Error generating DASH with SSAI:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Track ad events for analytics
+   */
+  async trackAdEvent(
+    streamId: string,
     adId: string,
-    quartile: 'start' | 'first' | 'mid' | 'third' | 'complete',
-    viewerContext: any
+    eventType: 'start' | 'firstQuartile' | 'midpoint' | 'thirdQuartile' | 'complete',
+    viewerId?: string
   ): Promise<void> {
-    if (!this.adTrackingEnabled) {
-      return
-    }
-
     try {
-      console.log('Ad quartile tracked:', {
-        adId,
-        quartile,
-        timestamp: new Date().toISOString(),
-        viewerContext
+      // Store tracking event in database
+      await db.streamAnalytics.create({
+        data: {
+          streamId,
+          timestamp: new Date(),
+          // In a real implementation, you'd have a dedicated analytics table for ad tracking
+          viewerCount: 0,
+          bitrate: 0,
+          bandwidth: 0,
+          cpuUsage: 0,
+          memoryUsage: 0,
+          networkLatency: 0
+        }
       })
-    } catch (error) {
-      console.error('Error tracking ad quartile:', error)
-    }
-  }
 
-  /**
-   * Get ad targeting information
-   */
-  async getAdTargeting(viewerContext: any): Promise<any> {
-    // Simple targeting logic
-    // In production, this would integrate with DMPs and CDPs
-    return {
-      demographics: this.getDemographicTargeting(viewerContext),
-      content: this.getContentTargeting(viewerContext),
-      device: this.getDeviceTargeting(viewerContext),
-      location: this.getLocationTargeting(viewerContext),
-      time: this.getTimeTargeting()
-    }
-  }
-
-  private getDemographicTargeting(viewerContext: any): string[] {
-    // Simplified demographic targeting
-    const targeting: string[] = []
-    
-    if (viewerContext.age) {
-      if (viewerContext.age < 18) targeting.push('age-under-18')
-      else if (viewerContext.age < 25) targeting.push('age-18-24')
-      else if (viewerContext.age < 35) targeting.push('age-25-34')
-      else if (viewerContext.age < 50) targeting.push('age-35-49')
-      else targeting.push('age-50-plus')
-    }
-    
-    if (viewerContext.gender) {
-      targeting.push(`gender-${viewerContext.gender}`)
-    }
-    
-    return targeting
-  }
-
-  private getContentTargeting(viewerContext: any): string[] {
-    // Content-based targeting
-    return ['live-streaming', 'entertainment']
-  }
-
-  private getDeviceTargeting(viewerContext: any): string[] {
-    // Device-based targeting
-    const targeting: string[] = []
-    
-    if (viewerContext.userAgent) {
-      if (viewerContext.userAgent.includes('Mobile')) {
-        targeting.push('mobile')
-      } else if (viewerContext.userAgent.includes('Tablet')) {
-        targeting.push('tablet')
-      } else {
-        targeting.push('desktop')
+      // Send tracking event to ad server if available
+      if (this.config.url) {
+        await fetch(`${this.config.url}/tracking`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.config.apiKey || ''}`
+          },
+          body: JSON.stringify({
+            streamId,
+            adId,
+            eventType,
+            viewerId,
+            timestamp: Date.now()
+          })
+        }).catch(error => {
+          console.error('Error sending tracking event:', error)
+        })
       }
+    } catch (error) {
+      console.error('Error tracking ad event:', error)
     }
-    
-    if (viewerContext.bandwidth) {
-      if (viewerContext.bandwidth < 1000) targeting.push('low-bandwidth')
-      else if (viewerContext.bandwidth < 5000) targeting.push('medium-bandwidth')
-      else targeting.push('high-bandwidth')
-    }
-    
-    return targeting
-  }
-
-  private getLocationTargeting(viewerContext: any): string[] {
-    // Location-based targeting
-    const targeting: string[] = []
-    
-    if (viewerContext.location) {
-      targeting.push(`location-${viewerContext.location}`)
-    }
-    
-    return targeting
-  }
-
-  private getTimeTargeting(): string[] {
-    // Time-based targeting
-    const hour = new Date().getHours()
-    const targeting: string[] = []
-    
-    if (hour >= 6 && hour < 12) targeting.push('morning')
-    else if (hour >= 12 && hour < 18) targeting.push('afternoon')
-    else if (hour >= 18 && hour < 24) targeting.push('evening')
-    else targeting.push('night')
-    
-    // Day of week targeting
-    const dayOfWeek = new Date().getDay()
-    if (dayOfWeek === 0 || dayOfWeek === 6) targeting.push('weekend')
-    else targeting.push('weekday')
-    
-    return targeting
   }
 
   /**
-   * Configure ad decision server
+   * Get active SSAI manifest for a stream
    */
-  configureAdDecisionServer(url: string): void {
-    this.adDecisionServerUrl = url
-    console.log('Ad decision server configured:', url)
+  getActiveManifest(streamId: string): SSAIManifest | undefined {
+    return this.activeManifests.get(streamId)
   }
 
   /**
-   * Enable/disable ad tracking
+   * Clear active manifest for a stream
    */
-  setAdTracking(enabled: boolean): void {
-    this.adTrackingEnabled = enabled
-    console.log('Ad tracking', enabled ? 'enabled' : 'disabled')
+  clearActiveManifest(streamId: string): void {
+    this.activeManifests.delete(streamId)
   }
 
   /**
-   * Get SSAI manager status
+   * Get all active manifests
    */
-  getStatus(): {
-    adDecisionServerUrl?: string
-    adTrackingEnabled: boolean
-    isConfigured: boolean
+  getAllActiveManifests(): Map<string, SSAIManifest> {
+    return new Map(this.activeManifests)
+  }
+
+  /**
+   * Validate SSAI configuration
+   */
+  validateConfiguration(): boolean {
+    return !!this.config.url && this.config.timeout > 0
+  }
+
+  /**
+   * Get SSAI statistics
+   */
+  getStatistics(): {
+    activeStreams: number
+    totalAdBreaks: number
+    configurationValid: boolean
   } {
+    const activeStreams = this.activeManifests.size
+    let totalAdBreaks = 0
+
+    for (const manifest of this.activeManifests.values()) {
+      totalAdBreaks += manifest.adBreaks.length
+    }
+
     return {
-      adDecisionServerUrl: this.adDecisionServerUrl,
-      adTrackingEnabled: this.adTrackingEnabled,
-      isConfigured: !!this.adDecisionServerUrl
+      activeStreams,
+      totalAdBreaks,
+      configurationValid: this.validateConfiguration()
     }
   }
 }

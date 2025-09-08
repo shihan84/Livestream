@@ -11,7 +11,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Progress } from '@/components/ui/progress'
-import { Play, Square, Settings, BarChart3, Users, Activity, Radio, Plus, Zap, Shield, Cloud, Monitor, Cpu, HardDrive } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Play, Square, Settings, BarChart3, Users, Activity, Radio, Plus, Zap, Shield, Cloud, Monitor, Cpu, HardDrive, Package } from 'lucide-react'
 import { useStreaming } from '@/hooks/use-streaming'
 
 export default function StreamingDashboard() {
@@ -130,6 +131,52 @@ export default function StreamingDashboard() {
       await insertAdMarker(streamKey, marker)
     } catch (error) {
       console.error('Error inserting ad marker:', error)
+    }
+  }
+
+  const handlePackageStream = async (streamId: string, inputUrl: string, packageType: 'hls' | 'dash' | 'both') => {
+    try {
+      if (socket && isConnected) {
+        socket.emit('package_stream', {
+          streamId,
+          inputUrl,
+          packageType,
+          includeSCTE35: true,
+          enableSSAI: true,
+          adaptiveBitrate: true
+        })
+      }
+    } catch (error) {
+      console.error('Error packaging stream:', error)
+    }
+  }
+
+  const handleGetSSAIManifest = async (streamId: string, originalManifest: string, manifestType: 'hls' | 'dash') => {
+    try {
+      if (socket && isConnected) {
+        socket.emit('get_ssai_manifest', {
+          streamId,
+          originalManifest,
+          manifestType
+        })
+      }
+    } catch (error) {
+      console.error('Error getting SSAI manifest:', error)
+    }
+  }
+
+  const handleTrackAdEvent = async (streamId: string, adId: string, eventType: 'start' | 'firstQuartile' | 'midpoint' | 'thirdQuartile' | 'complete') => {
+    try {
+      if (socket && isConnected) {
+        socket.emit('track_ad_event', {
+          streamId,
+          adId,
+          eventType,
+          viewerId: 'demo-viewer'
+        })
+      }
+    } catch (error) {
+      console.error('Error tracking ad event:', error)
     }
   }
 
@@ -382,6 +429,8 @@ export default function StreamingDashboard() {
           <TabsList className="bg-aws-surface border-aws-border">
             <TabsTrigger value="channels" className="text-aws-text-primary">Channels</TabsTrigger>
             <TabsTrigger value="ad-markers" className="text-aws-text-primary">SCTE-35 Markers</TabsTrigger>
+            <TabsTrigger value="packaging" className="text-aws-text-primary">HLS/DASH Packaging</TabsTrigger>
+            <TabsTrigger value="ssai" className="text-aws-text-primary">SSAI Management</TabsTrigger>
             <TabsTrigger value="analytics" className="text-aws-text-primary">Analytics</TabsTrigger>
           </TabsList>
 
@@ -516,6 +565,225 @@ export default function StreamingDashboard() {
                       </div>
                     )
                   })}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="packaging" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* HLS/DASH Packaging */}
+              <div className="broadcast-card">
+                <div className="broadcast-header">
+                  <h3 className="text-lg font-semibold text-aws-primary">HLS/DASH Packaging</h3>
+                  <Package className="w-5 h-5 text-aws-accent" />
+                </div>
+                <div className="p-6 space-y-4">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-aws-text-secondary mb-2 block">Select Stream</label>
+                      <Select onValueChange={(value) => setNewAdMarker({ ...newAdMarker, streamId: value })}>
+                        <SelectTrigger className="bg-aws-card border-aws-border text-aws-primary">
+                          <SelectValue placeholder="Select a stream" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {streams.map((stream) => (
+                            <SelectItem key={stream.id} value={stream.id}>
+                              {stream.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-aws-text-secondary mb-2 block">Input URL</label>
+                      <Input
+                        placeholder="rtmp://localhost:1935/live/stream-key"
+                        className="bg-aws-card border-aws-border text-aws-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-aws-text-secondary mb-2 block">Package Type</label>
+                      <Select defaultValue="both">
+                        <SelectTrigger className="bg-aws-card border-aws-border text-aws-primary">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="hls">HLS Only</SelectItem>
+                          <SelectItem value="dash">DASH Only</SelectItem>
+                          <SelectItem value="both">HLS + DASH</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="scte35" defaultChecked />
+                        <label htmlFor="scte35" className="text-sm text-aws-text-secondary">Include SCTE-35</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="ssai" defaultChecked />
+                        <label htmlFor="ssai" className="text-sm text-aws-text-secondary">Enable SSAI</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="adaptive" defaultChecked />
+                        <label htmlFor="adaptive" className="text-sm text-aws-text-secondary">Adaptive Bitrate</label>
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={() => handlePackageStream('stream-id', 'input-url', 'both')}
+                      className="w-full bg-aws-primary hover:bg-aws-accent text-white"
+                    >
+                      <Package className="w-4 h-4 mr-2" />
+                      Package Stream
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Packaging Statistics */}
+              <div className="broadcast-card">
+                <div className="broadcast-header">
+                  <h3 className="text-lg font-semibold text-aws-primary">Packaging Statistics</h3>
+                  <BarChart3 className="w-5 h-5 text-aws-accent" />
+                </div>
+                <div className="p-6 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-aws-card p-4 rounded-lg border-aws-border">
+                      <div className="text-2xl font-bold text-aws-primary">0</div>
+                      <div className="text-sm text-aws-text-secondary">HLS Streams</div>
+                    </div>
+                    <div className="bg-aws-card p-4 rounded-lg border-aws-border">
+                      <div className="text-2xl font-bold text-aws-primary">0</div>
+                      <div className="text-sm text-aws-text-secondary">DASH Streams</div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-aws-text-secondary">Total Size</span>
+                      <span className="text-aws-primary">0 MB</span>
+                    </div>
+                    <div className="w-full bg-aws-card rounded-full h-2">
+                      <div className="bg-aws-accent h-2 rounded-full" style={{ width: '0%' }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-aws-text-secondary">Active Packagers</span>
+                      <span className="text-aws-primary">0</span>
+                    </div>
+                    <div className="w-full bg-aws-card rounded-full h-2">
+                      <div className="bg-aws-primary h-2 rounded-full" style={{ width: '0%' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="ssai" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* SSAI Management */}
+              <div className="broadcast-card">
+                <div className="broadcast-header">
+                  <h3 className="text-lg font-semibold text-aws-primary">SSAI Management</h3>
+                  <Zap className="w-5 h-5 text-aws-accent" />
+                </div>
+                <div className="p-6 space-y-4">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-aws-text-secondary mb-2 block">Ad Decision Server</label>
+                      <Input
+                        placeholder="http://localhost:3001"
+                        className="bg-aws-card border-aws-border text-aws-primary"
+                        defaultValue="http://localhost:3001"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-aws-text-secondary mb-2 block">Timeout (ms)</label>
+                      <Input
+                        type="number"
+                        placeholder="5000"
+                        className="bg-aws-card border-aws-border text-aws-primary"
+                        defaultValue="5000"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-aws-text-secondary mb-2 block">Original Manifest</label>
+                      <Textarea
+                        placeholder="Paste original HLS/DASH manifest..."
+                        className="bg-aws-card border-aws-border text-aws-primary min-h-20"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-aws-text-secondary mb-2 block">Manifest Type</label>
+                      <Select defaultValue="hls">
+                        <SelectTrigger className="bg-aws-card border-aws-border text-aws-primary">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="hls">HLS Manifest</SelectItem>
+                          <SelectItem value="dash">DASH Manifest</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button 
+                      onClick={() => handleGetSSAIManifest('stream-id', 'original-manifest', 'hls')}
+                      className="w-full bg-aws-primary hover:bg-aws-accent text-white"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Generate SSAI Manifest
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* SSAI Statistics */}
+              <div className="broadcast-card">
+                <div className="broadcast-header">
+                  <h3 className="text-lg font-semibold text-aws-primary">SSAI Statistics</h3>
+                  <Activity className="w-5 h-5 text-aws-accent" />
+                </div>
+                <div className="p-6 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-aws-card p-4 rounded-lg border-aws-border">
+                      <div className="text-2xl font-bold text-aws-primary">0</div>
+                      <div className="text-sm text-aws-text-secondary">Active Streams</div>
+                    </div>
+                    <div className="bg-aws-card p-4 rounded-lg border-aws-border">
+                      <div className="text-2xl font-bold text-aws-primary">0</div>
+                      <div className="text-sm text-aws-text-secondary">Total Ad Breaks</div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium text-aws-text-secondary">Ad Event Tracking</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleTrackAdEvent('stream-id', 'ad-id', 'start')}
+                        className="bg-aws-card border-aws-border text-aws-primary hover:bg-aws-surface"
+                      >
+                        Start
+                      </Button>
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleTrackAdEvent('stream-id', 'ad-id', 'complete')}
+                        className="bg-aws-card border-aws-border text-aws-primary hover:bg-aws-surface"
+                      >
+                        Complete
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-aws-text-secondary">Configuration Status</span>
+                      <span className="text-aws-accent">Valid</span>
+                    </div>
+                    <div className="w-full bg-aws-card rounded-full h-2">
+                      <div className="bg-aws-accent h-2 rounded-full" style={{ width: '100%' }} />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
