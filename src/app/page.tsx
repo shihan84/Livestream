@@ -236,10 +236,10 @@ export default function StreamingDashboard() {
                   Create Channel
                 </button>
               </DialogTrigger>
-              <DialogContent className="bg-aws-surface border-aws-border">
-                <DialogHeader>
-                  <DialogTitle className="text-aws-primary">Create New Channel</DialogTitle>
-                  <DialogDescription className="text-aws-text-secondary">
+              <DialogContent className="dialog-content">
+                <DialogHeader className="dialog-header">
+                  <DialogTitle className="dialog-title">Create New Channel</DialogTitle>
+                  <DialogDescription className="dialog-description">
                     Configure a new broadcast channel for live streaming
                   </DialogDescription>
                 </DialogHeader>
@@ -251,7 +251,7 @@ export default function StreamingDashboard() {
                       value={newStream.name}
                       onChange={(e) => setNewStream({ ...newStream, name: e.target.value })}
                       placeholder="Enter channel name"
-                      className="bg-aws-card border-aws-border text-aws-text-primary"
+                      className="bg-aws-card border-aws-border text-aws-text-primary placeholder:text-aws-text-muted"
                     />
                   </div>
                   <div>
@@ -261,7 +261,7 @@ export default function StreamingDashboard() {
                       value={newStream.description}
                       onChange={(e) => setNewStream({ ...newStream, description: e.target.value })}
                       placeholder="Enter channel description"
-                      className="bg-aws-card border-aws-border text-aws-text-primary"
+                      className="bg-aws-card border-aws-border text-aws-text-primary placeholder:text-aws-text-muted"
                     />
                   </div>
                   <div>
@@ -271,7 +271,7 @@ export default function StreamingDashboard() {
                       value={newStream.streamKey}
                       onChange={(e) => setNewStream({ ...newStream, streamKey: e.target.value })}
                       placeholder="Leave empty to auto-generate"
-                      className="bg-aws-card border-aws-border text-aws-text-primary"
+                      className="bg-aws-card border-aws-border text-aws-text-primary placeholder:text-aws-text-muted"
                     />
                   </div>
                   <button onClick={handleCreateStream} className="broadcast-button w-full">
@@ -288,10 +288,10 @@ export default function StreamingDashboard() {
                   Add Ad Marker
                 </button>
               </DialogTrigger>
-              <DialogContent className="bg-aws-surface border-aws-border">
-                <DialogHeader>
-                  <DialogTitle className="text-aws-primary">Create SCTE-35 Ad Marker</DialogTitle>
-                  <DialogDescription className="text-aws-text-secondary">
+              <DialogContent className="dialog-content">
+                <DialogHeader className="dialog-header">
+                  <DialogTitle className="dialog-title">Create SCTE-35 Ad Marker</DialogTitle>
+                  <DialogDescription className="dialog-description">
                     Schedule an ad marker for your broadcast channel
                   </DialogDescription>
                 </DialogHeader>
@@ -300,11 +300,11 @@ export default function StreamingDashboard() {
                     <Label htmlFor="streamSelect" className="text-aws-text-primary">Channel</Label>
                     <Select onValueChange={(value) => setNewAdMarker({ ...newAdMarker, streamId: value })}>
                       <SelectTrigger className="bg-aws-card border-aws-border text-aws-text-primary">
-                        <SelectValue placeholder="Select a channel" />
+                        <SelectValue placeholder="Select a channel" className="text-aws-text-muted" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-aws-card border-aws-border text-aws-text-primary">
                         {streams.map((stream) => (
-                          <SelectItem key={stream.id} value={stream.id}>
+                          <SelectItem key={stream.id} value={stream.id} className="text-aws-text-primary">
                             {stream.name}
                           </SelectItem>
                         ))}
@@ -319,7 +319,7 @@ export default function StreamingDashboard() {
                       value={newAdMarker.startTime}
                       onChange={(e) => setNewAdMarker({ ...newAdMarker, startTime: e.target.value })}
                       placeholder="300"
-                      className="bg-aws-card border-aws-border text-aws-text-primary"
+                      className="bg-aws-card border-aws-border text-aws-text-primary placeholder:text-aws-text-muted"
                     />
                   </div>
                   <div>
@@ -330,21 +330,21 @@ export default function StreamingDashboard() {
                       value={newAdMarker.duration}
                       onChange={(e) => setNewAdMarker({ ...newAdMarker, duration: e.target.value })}
                       placeholder="30"
-                      className="bg-aws-card border-aws-border text-aws-text-primary"
+                      className="bg-aws-card border-aws-border text-aws-text-primary placeholder:text-aws-text-muted"
                     />
                   </div>
                   <div>
                     <Label htmlFor="adType" className="text-aws-text-primary">Ad Type</Label>
                     <Select onValueChange={(value) => setNewAdMarker({ ...newAdMarker, adType: value })}>
                       <SelectTrigger className="bg-aws-card border-aws-border text-aws-text-primary">
-                        <SelectValue placeholder="Select ad type" />
+                        <SelectValue placeholder="Select ad type" className="text-aws-text-muted" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="PROGRAM">Program</SelectItem>
-                        <SelectItem value="PROVIDER_ADVERTISEMENT">Provider Advertisement</SelectItem>
-                        <SelectItem value="DISTRIBUTOR_ADVERTISEMENT">Distributor Advertisement</SelectItem>
-                        <SelectItem value="NETWORK_ADVERTISEMENT">Network Advertisement</SelectItem>
-                        <SelectItem value="LOCAL_ADVERTISEMENT">Local Advertisement</SelectItem>
+                      <SelectContent className="bg-aws-card border-aws-border text-aws-text-primary">
+                        <SelectItem value="PROGRAM" className="text-aws-text-primary">Program</SelectItem>
+                        <SelectItem value="PROVIDER_ADVERTISEMENT" className="text-aws-text-primary">Provider Advertisement</SelectItem>
+                        <SelectItem value="DISTRIBUTOR_ADVERTISEMENT" className="text-aws-text-primary">Distributor Advertisement</SelectItem>
+                        <SelectItem value="NETWORK_ADVERTISEMENT" className="text-aws-text-primary">Network Advertisement</SelectItem>
+                        <SelectItem value="LOCAL_ADVERTISEMENT" className="text-aws-text-primary">Local Advertisement</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -355,7 +355,7 @@ export default function StreamingDashboard() {
                       value={newAdMarker.description}
                       onChange={(e) => setNewAdMarker({ ...newAdMarker, description: e.target.value })}
                       placeholder="Enter ad marker description"
-                      className="bg-aws-card border-aws-border text-aws-text-primary"
+                      className="bg-aws-card border-aws-border text-aws-text-primary placeholder:text-aws-text-muted"
                     />
                   </div>
                   <div>
@@ -365,7 +365,7 @@ export default function StreamingDashboard() {
                       value={newAdMarker.cueId}
                       onChange={(e) => setNewAdMarker({ ...newAdMarker, cueId: e.target.value })}
                       placeholder="Leave empty to auto-generate"
-                      className="bg-aws-card border-aws-border text-aws-text-primary"
+                      className="bg-aws-card border-aws-border text-aws-text-primary placeholder:text-aws-text-muted"
                     />
                   </div>
                   <button onClick={handleCreateAdMarker} className="broadcast-button w-full">

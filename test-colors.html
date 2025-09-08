@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Test</title>
+    <style>
+        .aws-theme {
+            --aws-background: #0A0F1A;
+            --aws-text-primary: #FFFFFF;
+            --aws-text-secondary: #F0F0F0;
+            --aws-text-muted: #D0D0D0;
+            background: var(--aws-background);
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .text-aws-text-primary {
+            color: var(--aws-text-primary) !important;
+        }
+        
+        .text-aws-text-secondary {
+            color: var(--aws-text-secondary) !important;
+        }
+        
+        .text-aws-text-muted {
+            color: var(--aws-text-muted) !important;
+        }
+    </style>
+</head>
+<body class="aws-theme">
+    <h1 class="text-aws-text-primary">Primary Text - Should be WHITE (#FFFFFF)</h1>
+    <p class="text-aws-text-secondary">Secondary Text - Should be LIGHT GRAY (#F0F0F0)</p>
+    <p class="text-aws-text-muted">Muted Text - Should be MEDIUM GRAY (#D0D0D0)</p>
+    
+    <div style="margin-top: 20px;">
+        <h2>Color Values:</h2>
+        <ul>
+            <li style="color: #FFFFFF;">#FFFFFF (Primary)</li>
+            <li style="color: #F0F0F0;">#F0F0F0 (Secondary)</li>
+            <li style="color: #D0D0D0;">#D0D0D0 (Muted)</li>
+        </ul>
+    </div>
+</body>
+</html>

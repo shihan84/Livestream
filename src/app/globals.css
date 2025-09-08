@@ -851,6 +851,153 @@
   box-shadow: var(--aws-shadow-sm);
 }
 
+/* Dialog Component Fixes */
+.aws-theme [data-radix-dialog-content] {
+  background: var(--aws-surface) !important;
+  border: 1px solid var(--aws-border) !important;
+  color: var(--aws-text-primary) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--aws-shadow-lg) !important;
+  opacity: 1 !important;
+}
+
+.aws-theme [data-radix-dialog-overlay] {
+  background: rgba(15, 23, 32, 0.9) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 1 !important;
+}
+
+.aws-theme [data-radix-dialog-title] {
+  color: var(--aws-text-primary) !important;
+  font-weight: 600 !important;
+  font-size: 1.125rem !important;
+  line-height: 1.5 !important;
+}
+
+.aws-theme [data-radix-dialog-description] {
+  color: var(--aws-text-secondary) !important;
+  font-size: 0.875rem !important;
+  line-height: 1.4 !important;
+}
+
+.aws-theme .bg-aws-surface {
+  background-color: var(--aws-surface) !important;
+  background: var(--aws-surface) !important;
+}
+
+.aws-theme .border-aws-border {
+  border-color: var(--aws-border) !important;
+}
+
+.aws-theme .text-aws-text-primary {
+  color: var(--aws-text-primary) !important;
+}
+
+.aws-theme .text-aws-text-secondary {
+  color: var(--aws-text-secondary) !important;
+}
+
+.aws-theme .bg-aws-card {
+  background-color: var(--aws-card) !important;
+  background: var(--aws-card) !important;
+}
+
+/* Additional dialog styling for better visibility */
+.aws-theme .DialogContent {
+  background: var(--aws-surface) !important;
+  border: 1px solid var(--aws-border) !important;
+  color: var(--aws-text-primary) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3) !important;
+}
+
+.aws-theme .DialogHeader {
+  color: var(--aws-text-primary) !important;
+}
+
+.aws-theme .DialogTitle {
+  color: var(--aws-text-primary) !important;
+  font-weight: 600 !important;
+}
+
+.aws-theme .DialogDescription {
+  color: var(--aws-text-secondary) !important;
+}
+
+/* Force dialog content visibility */
+.aws-theme .dialog-content,
+.aws-theme .dialog-content *,
+.aws-theme .dialog-content > *,
+.aws-theme .dialog-content div,
+.aws-theme .dialog-content span,
+.aws-theme .dialog-content p,
+.aws-theme .dialog-content h1,
+.aws-theme .dialog-content h2,
+.aws-theme .dialog-content h3,
+.aws-theme .dialog-content h4,
+.aws-theme .dialog-content h5,
+.aws-theme .dialog-content h6,
+.aws-theme .dialog-content label,
+.aws-theme .dialog-content input,
+.aws-theme .dialog-content textarea,
+.aws-theme .dialog-content button {
+  color: var(--aws-text-primary) !important;
+  background-color: transparent !important;
+}
+
+.aws-theme .dialog-content input,
+.aws-theme .dialog-content textarea {
+  background-color: var(--aws-card) !important;
+  border: 1px solid var(--aws-border) !important;
+}
+
+.aws-theme .dialog-content button {
+  background-color: var(--aws-primary) !important;
+  color: var(--aws-secondary-dark) !important;
+}
+
+/* Input and Select Component Fixes */
+.aws-theme input::placeholder {
+  color: var(--aws-text-muted) !important;
+  opacity: 0.7;
+}
+
+.aws-theme textarea::placeholder {
+  color: var(--aws-text-muted) !important;
+  opacity: 0.7;
+}
+
+.aws-theme [data-radix-select-trigger] {
+  background-color: var(--aws-card) !important;
+  border-color: var(--aws-border) !important;
+  color: var(--aws-text-primary) !important;
+}
+
+.aws-theme [data-radix-select-content] {
+  background-color: var(--aws-card) !important;
+  border-color: var(--aws-border) !important;
+  color: var(--aws-text-primary) !important;
+}
+
+.aws-theme [data-radix-select-item] {
+  color: var(--aws-text-primary) !important;
+}
+
+.aws-theme [data-radix-select-item]:hover {
+  background-color: var(--aws-primary) !important;
+  color: var(--aws-secondary-dark) !important;
+}
+
+.aws-theme [data-radix-select-value] {
+  color: var(--aws-text-muted) !important;
+}
+
+.aws-theme [data-radix-label] {
+  color: var(--aws-text-primary) !important;
+  font-weight: 500;
+}
+
 .aws-theme .signal-flow {
   background: var(--aws-surface);
   border: 1px solid var(--aws-border);
@@ -967,6 +1114,228 @@
 @keyframes status-pulse-red {
   0%, 100% { box-shadow: var(--aws-shadow-danger); }
   50% { box-shadow: 0 0 15px rgba(209, 50, 18, 0.8); }
+}
+
+/* Dialog Component Overrides for AWS Theme */
+.aws-theme .dialog-backdrop {
+  background-color: rgba(15, 23, 32, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+.aws-theme .dialog-content {
+  background: var(--aws-surface) !important;
+  border: 1px solid var(--aws-border) !important;
+  color: var(--aws-text-primary) !important;
+  border-radius: var(--aws-radius-lg) !important;
+  box-shadow: var(--aws-shadow-lg) !important;
+}
+
+.aws-theme .dialog-header {
+  border-bottom: 1px solid var(--aws-border) !important;
+  padding-bottom: 1rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.aws-theme .dialog-title {
+  color: var(--aws-primary) !important;
+  font-weight: 600 !important;
+  font-size: 1.25rem !important;
+}
+
+.aws-theme .dialog-description {
+  color: var(--aws-text-secondary) !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+
+.aws-theme .dialog-overlay {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+/* Force override for shadcn/ui dialog components */
+.aws-theme [data-state="open"] {
+  background: var(--aws-surface) !important;
+  border-color: var(--aws-border) !important;
+}
+
+.aws-theme .fixed.inset-0 {
+  background-color: rgba(15, 23, 32, 0.8) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.aws-theme .bg-background {
+  background: var(--aws-surface) !important;
+}
+
+.aws-theme .text-foreground {
+  color: var(--aws-text-primary) !important;
+}
+
+/* Specific dialog content overrides */
+.aws-theme .DialogContent {
+  background: var(--aws-surface) !important;
+  border: 1px solid var(--aws-border) !important;
+  color: var(--aws-text-primary) !important;
+}
+
+.aws-theme .DialogTrigger {
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* Input and textarea overrides within dialogs */
+.aws-theme .dialog-content input,
+.aws-theme .dialog-content textarea {
+  background: var(--aws-card) !important;
+  border: 1px solid var(--aws-border) !important;
+  color: var(--aws-text-primary) !important;
+  border-radius: var(--aws-radius-sm) !important;
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.875rem !important;
+  transition: var(--aws-transition-normal) !important;
+}
+
+.aws-theme .dialog-content input:focus,
+.aws-theme .dialog-content textarea:focus {
+  outline: none !important;
+  border-color: var(--aws-primary) !important;
+  box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.2) !important;
+}
+
+.aws-theme .dialog-content input::placeholder,
+.aws-theme .dialog-content textarea::placeholder {
+  color: var(--aws-text-muted) !important;
+}
+
+.aws-theme .dialog-content label {
+  color: var(--aws-text-primary) !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  margin-bottom: 0.5rem !important;
+  display: block !important;
+}
+
+/* Select component overrides */
+.aws-theme .dialog-content .select-trigger {
+  background: var(--aws-card) !important;
+  border: 1px solid var(--aws-border) !important;
+  color: var(--aws-text-primary) !important;
+  border-radius: var(--aws-radius-sm) !important;
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.875rem !important;
+  transition: var(--aws-transition-normal) !important;
+}
+
+.aws-theme .dialog-content .select-trigger:focus {
+  outline: none !important;
+  border-color: var(--aws-primary) !important;
+  box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.2) !important;
+}
+
+.aws-theme .dialog-content .select-content {
+  background: var(--aws-card) !important;
+  border: 1px solid var(--aws-border) !important;
+  color: var(--aws-text-primary) !important;
+  border-radius: var(--aws-radius-sm) !important;
+  box-shadow: var(--aws-shadow-lg) !important;
+}
+
+.aws-theme .dialog-content .select-item {
+  color: var(--aws-text-primary) !important;
+  background: transparent !important;
+  transition: var(--aws-transition-normal) !important;
+}
+
+.aws-theme .dialog-content .select-item:hover {
+  background: var(--aws-primary) !important;
+  color: var(--aws-secondary-dark) !important;
+}
+
+.aws-theme .dialog-content .select-value {
+  color: var(--aws-text-primary) !important;
+}
+
+.aws-theme .dialog-content .select-placeholder {
+  color: var(--aws-text-muted) !important;
+}
+
+/* Button overrides within dialogs */
+.aws-theme .dialog-content button {
+  background: var(--aws-gradient-button) !important;
+  color: var(--aws-secondary-dark) !important;
+  border: none !important;
+  border-radius: var(--aws-radius-sm) !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  cursor: pointer !important;
+  transition: var(--aws-transition-normal) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-shadow: var(--aws-shadow-sm) !important;
+  width: 100% !important;
+}
+
+.aws-theme .dialog-content button::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent) !important;
+  transition: var(--aws-transition-normal) !important;
+}
+
+.aws-theme .dialog-content button:hover::before {
+  left: 100% !important;
+}
+
+.aws-theme .dialog-content button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: var(--aws-shadow-orange) !important;
+  background: var(--aws-gradient-primary) !important;
+}
+
+.aws-theme .dialog-content button:active {
+  transform: translateY(0) !important;
+  box-shadow: var(--aws-shadow-sm) !important;
+}
+
+/* Additional dialog overlay fixes */
+.aws-theme .fixed {
+  background-color: rgba(15, 23, 32, 0.9) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.aws-theme .relative {
+  z-index: 50 !important;
+}
+
+.aws-theme .z-50 {
+  z-index: 1000 !important;
+}
+
+/* Dialog content specific fixes */
+.aws-theme [role="dialog"] {
+  background: var(--aws-surface) !important;
+  border: 1px solid var(--aws-border) !important;
+  color: var(--aws-text-primary) !important;
+}
+
+.aws-theme [data-radix-dialog-content] {
+  background: var(--aws-surface) !important;
+  border: 1px solid var(--aws-border) !important;
+  color: var(--aws-text-primary) !important;
+  border-radius: var(--aws-radius-lg) !important;
+  box-shadow: var(--aws-shadow-lg) !important;
+}
+
+.aws-theme [data-radix-dialog-overlay] {
+  background-color: rgba(15, 23, 32, 0.8) !important;
+  backdrop-filter: blur(4px) !important;
 }
 
 .aws-theme .metrics-panel {
