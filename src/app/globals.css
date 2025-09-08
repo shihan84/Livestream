@@ -146,11 +146,51 @@
   --radius: 0.625rem !important;
 }
 
+/* Aggressive text color overrides */
+.aws-theme * {
+  color: var(--aws-text-primary) !important;
+}
+
+.aws-theme .text-aws-text-secondary,
+.aws-theme .text-secondary,
+.aws-theme .text-muted-foreground {
+  color: var(--aws-text-secondary) !important;
+}
+
+.aws-theme .text-aws-text-muted,
+.aws-theme .text-muted {
+  color: var(--aws-text-muted) !important;
+}
+
+.aws-theme .text-aws-text-primary,
+.aws-theme .text-foreground,
+.aws-theme .text-primary {
+  color: var(--aws-text-primary) !important;
+}
+
 /* Force text colors for all elements in AWS theme */
 .aws-theme,
 .aws-theme *,
 .aws-theme *::before,
 .aws-theme *::after {
+  color: var(--aws-text-primary) !important;
+}
+
+/* Specific text classes with higher specificity */
+.aws-theme .text-aws-text-secondary,
+.aws-theme .text-secondary,
+.aws-theme .text-muted-foreground {
+  color: var(--aws-text-secondary) !important;
+}
+
+.aws-theme .text-aws-text-muted,
+.aws-theme .text-muted {
+  color: var(--aws-text-muted) !important;
+}
+
+.aws-theme .text-aws-text-primary,
+.aws-theme .text-foreground,
+.aws-theme .text-primary {
   color: var(--aws-text-primary) !important;
 }
 
@@ -172,17 +212,6 @@
 .aws-theme textarea,
 .aws-theme select,
 .aws-theme button {
-  color: var(--aws-text-primary) !important;
-}
-
-.aws-theme .text-muted-foreground,
-.aws-theme .text-secondary,
-.aws-theme .text-aws-text-secondary {
-  color: var(--aws-text-secondary) !important;
-}
-
-.aws-theme .text-foreground,
-.aws-theme .text-aws-text-primary {
   color: var(--aws-text-primary) !important;
 }
 
