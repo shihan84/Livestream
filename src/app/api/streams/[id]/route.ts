@@ -3,14 +3,15 @@ import { db } from '@/lib/db'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
     const { action } = body
 
     const stream = await db.stream.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!stream) {
@@ -22,7 +23,7 @@ export async function PATCH(
     switch (action) {
       case 'start':
         updatedStream = await db.stream.update({
-          where: { id: params.id },
+          where: { id },
           data: {
             status: 'STARTING',
             isLive: true,
@@ -37,7 +38,7 @@ export async function PATCH(
         // Simulate stream starting process
         setTimeout(async () => {
           await db.stream.update({
-            where: { id: params.id },
+            where: { id },
             data: { status: 'LIVE' }
           })
         }, 2000)
@@ -45,7 +46,7 @@ export async function PATCH(
 
       case 'stop':
         updatedStream = await db.stream.update({
-          where: { id: params.id },
+          where: { id },
           data: {
             status: 'STOPPING'
           },
@@ -58,7 +59,7 @@ export async function PATCH(
         // Simulate stream stopping process
         setTimeout(async () => {
           await db.stream.update({
-            where: { id: params.id },
+            where: { id },
             data: {
               status: 'OFFLINE',
               isLive: false,
@@ -82,11 +83,12 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     await db.stream.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ success: true })
